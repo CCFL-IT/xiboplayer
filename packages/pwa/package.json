@@ -31,10 +31,10 @@
     "html2canvas": "^1.4.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
-    "@types/node": "^26.4.1",
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.5",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.3.4"
   },
   "author": "Pau Aliagas <linuxnow@gmail.com>",
   "license": "AGPL-3.0-or-later",

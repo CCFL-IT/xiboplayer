@@ -678,14 +678,12 @@ describe('XmdsClient - NotifyStatus', () => {
   });
 
   afterEach(() => {
-    // Restore navigator and Intl
-    global.navigator = originalNavigator;
-    global.Intl = originalIntl;
+    vi.unstubAllGlobals();
   });
 
   it('should build correct SOAP envelope for NotifyStatus', async () => {
     // Remove storage API to test basic path
-    global.navigator = { ...originalNavigator, storage: undefined };
+    vi.stubGlobal('navigator', { ...originalNavigator, storage: undefined });
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -720,12 +718,12 @@ describe('XmdsClient - NotifyStatus', () => {
   });
 
   it('should enrich status with storage estimate when available', async () => {
-    global.navigator = {
+    vi.stubGlobal('navigator', {
       ...originalNavigator,
       storage: {
         estimate: vi.fn().mockResolvedValue({ quota: 1000000, usage: 250000 })
       }
-    };
+    });
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -751,7 +749,7 @@ describe('XmdsClient - NotifyStatus', () => {
   });
 
   it('should add timezone when not provided in status', async () => {
-    global.navigator = { ...originalNavigator, storage: undefined };
+    vi.stubGlobal('navigator', { ...originalNavigator, storage: undefined });
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -775,7 +773,7 @@ describe('XmdsClient - NotifyStatus', () => {
   });
 
   it('should not overwrite existing timezone in status', async () => {
-    global.navigator = { ...originalNavigator, storage: undefined };
+    vi.stubGlobal('navigator', { ...originalNavigator, storage: undefined });
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -796,12 +794,12 @@ describe('XmdsClient - NotifyStatus', () => {
   });
 
   it('should handle storage estimate failure gracefully', async () => {
-    global.navigator = {
+    vi.stubGlobal('navigator', {
       ...originalNavigator,
       storage: {
         estimate: vi.fn().mockRejectedValue(new Error('Storage API failed'))
       }
-    };
+    });
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -827,7 +825,7 @@ describe('XmdsClient - NotifyStatus', () => {
   });
 
   it('should handle SOAP fault', async () => {
-    global.navigator = { ...originalNavigator, storage: undefined };
+    vi.stubGlobal('navigator', { ...originalNavigator, storage: undefined });
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -847,7 +845,7 @@ describe('XmdsClient - NotifyStatus', () => {
   });
 
   it('should handle HTTP errors', async () => {
-    global.navigator = { ...originalNavigator, storage: undefined };
+    vi.stubGlobal('navigator', { ...originalNavigator, storage: undefined });
 
     mockFetch.mockResolvedValue({
       ok: false,
@@ -860,7 +858,7 @@ describe('XmdsClient - NotifyStatus', () => {
   });
 
   it('should JSON-stringify and XML-escape the status object', async () => {
-    global.navigator = { ...originalNavigator, storage: undefined };
+    vi.stubGlobal('navigator', { ...originalNavigator, storage: undefined });
 
     mockFetch.mockResolvedValue({
       ok: true,

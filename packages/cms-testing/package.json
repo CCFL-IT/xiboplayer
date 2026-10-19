@@ -15,12 +15,12 @@
   },
   "dependencies": {
     "@xiboplayer/utils": "workspace:*",
-    "dotenv": "^17.4.2",
+    "dotenv": "^18.0.7",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
-    "vitest": "^4.1.11"
+    "@playwright/test": "^1.64.0",
+    "vitest": "^5.0.5"
   },
   "keywords": [
     "xibo",
