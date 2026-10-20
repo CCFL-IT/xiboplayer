@@ -426,6 +426,7 @@
     let pollTimer = null;
     let countdownTimer = null;
     let pollSeconds = 15;
+    const urlParams = new URLSearchParams(window.location.search);
 
     // ── Transport: try REST first, fall back to SOAP ──
     let transport = null;
@@ -523,6 +524,16 @@
       pollTimer = null;
     }
 
+    function checkAutoConfig() {
+      if (!urlParams.has("autoconfig")) return;
+      let cmsUrl, cmsKey, displayName;
+      if (cmsUrl = urlParams.get("cmsurl")) config.data.cmsUrl = cmsUrl;
+      if (cmsKey = urlParams.get("cmskey")) config.data.cmsKey = cmsKey;
+      if (displayName = urlParams.get("displayname")) config.data.displayName = displayName;
+      config.save();
+      auth();
+    }
+
     // ── Auto-authorize via CMS API (through /api/* forward proxy) ──
     async function tryAutoAuthorize(cmsUrl, hardwareKey) {
       const clientId = document.getElementById('api-client-id').value.trim();
@@ -570,13 +581,14 @@
 
     // ── Unlock gate for reconfiguration ──
     const isReconfigure = config.isConfigured() && config.cmsKey;
-    const alreadyUnlocked = new URLSearchParams(window.location.search).has('unlocked');
+    const alreadyUnlocked = urlParams.has('unlocked');
     const btnBackPlayer = document.getElementById('btn-back-player');
     if (isReconfigure && !alreadyUnlocked) {
       // Show unlock phase instead of setup form
       showPhase(phaseUnlock);
     }
     if (isReconfigure || alreadyUnlocked) {
+      checkAutoConfig();
       // Show "Back to Player" on the setup form
       btnBackPlayer.style.display = 'block';
       // Pre-fill form with existing config
@@ -631,6 +643,7 @@
 
     // ── Pre-fill if first-time setup (no unlock gate) ──
     if (!isReconfigure && config.isConfigured()) {
+      checkAutoConfig();
       document.getElementById('cms-url').value = config.cmsUrl;
       document.getElementById('cms-key').value = config.cmsKey;
       document.getElementById('display-name').value = config.displayName;
@@ -640,34 +653,19 @@
       }
     }
 
-    // ── Form Submit ──
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      hideError();
+    if (!isReconfigure) {
+      checkAutoConfig();
+    }
 
-      const cmsUrl = document.getElementById('cms-url').value.trim().replace(/\/$/, '');
-      const cmsKey = document.getElementById('cms-key').value.trim();
-      const displayName = document.getElementById('display-name').value.trim();
-
-      // Write config.json via proxy (master config file)
-      // The boot path (proxy injection → Config.load()) handles the rest.
+    async function auth(){
       try {
-        submitBtn.textContent = 'Saving...';
-        submitBtn.disabled = true;
-
-        // Save config to localStorage first (works everywhere)
-        config.data.cmsUrl = cmsUrl;
-        config.data.cmsKey = cmsKey;
-        config.data.displayName = displayName;
-        config.save();
-
         // POST to proxy if available (Electron/Chromium — updates in-memory
         // config for REST auth, cache-through, and API forwarding)
         try {
           const saveResp = await fetch('/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cmsUrl, cmsKey, displayName }),
+            body: JSON.stringify({ cmsUrl: config.cmsUrl, cmsKey: config.cmsKey, displayName: config.displayName }),
           });
           if (!saveResp.ok) console.log('[Setup] Proxy not available, using localStorage only');
         } catch (e) {
@@ -677,7 +675,7 @@
         // Shell persistence (Electron config.json) — optional
         const electronAPI = window.electronAPI || window.parent?.electronAPI;
         if (electronAPI?.setConfig) {
-          await electronAPI.setConfig({ cmsUrl, cmsKey, displayName });
+          await electronAPI.setConfig({ cmsUrl: config.cmsUrl, cmsKey: config.cmsKey, displayName: config.displayName });
         }
 
         // Backup hardware key to IndexedDB for stability
@@ -696,7 +694,7 @@
         } else {
           // Try auto-authorize via CMS API if credentials provided
           submitBtn.textContent = 'Authorizing...';
-          const autoAuthed = await tryAutoAuthorize(cmsUrl, hwKey);
+          const autoAuthed = await tryAutoAuthorize(config.cmsUrl, config.hwKey);
 
           if (autoAuthed) {
             // Persist API client credentials so they survive restarts
@@ -705,11 +703,11 @@
               await fetch('/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiClientId: config.data.apiClientId, apiClientSecret: config.data.apiClientSecret }),
+                body: JSON.stringify({ apiClientId: config.apiClientId, apiClientSecret: config.apiClientSecret }),
               });
             } catch (e) { /* proxy not available — localStorage is enough */ }
             if (electronAPI?.setConfig) {
-              await electronAPI.setConfig({ apiClientId: config.data.apiClientId, apiClientSecret: config.data.apiClientSecret });
+              await electronAPI.setConfig({ apiClientId: config.apiClientId, apiClientSecret: config.apiClientSecret });
             }
 
             // Verify registration
@@ -721,13 +719,29 @@
           }
 
           // Not authorized yet — switch to polling phase
-          startPolling(displayName);
+          startPolling(config.displayName);
         }
       } catch (error) {
         showError(`Connection failed: ${error.message}`);
         submitBtn.textContent = 'Connect';
         submitBtn.disabled = false;
       }
+    }
+
+    // ── Form Submit ──
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      config.data.cmsUrl = document.getElementById('cms-url').value.trim().replace(/\/$/, '');
+      config.data.cmsKey = document.getElementById('cms-key').value.trim();
+      config.data.displayName = document.getElementById('display-name').value.trim();
+      
+      submitBtn.textContent = 'Saving...';
+      submitBtn.disabled = true;
+      // Save config to localStorage first (works everywhere)
+      config.save();
+      auth();
     });
 
     // ── Back button ──
