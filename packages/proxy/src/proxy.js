@@ -522,11 +522,11 @@ export function createProxyApp({ pwaPath, appVersion = '0.0.0', pwaConfig, confi
     }
 
     // 2. Store miss → fetch from CMS
-    const cmsUrl = currentPwaConfig?.cmsUrl;
-    if (!cmsUrl) return res.status(502).json({ error: 'CMS URL not configured' });
-
-    // Use direct CMS download URL if provided (XMDS signed URLs)
+    // Use direct CMS download URL if provided (XMDS signed URLs) — it is
+    // absolute, so no configured cmsUrl is needed in that case.
     const directUrl = req.headers['x-cms-download-url'];
+    const cmsUrl = currentPwaConfig?.cmsUrl;
+    if (!directUrl && !cmsUrl) return res.status(502).json({ error: 'CMS URL not configured' });
     const fullUrl = directUrl || `${cmsUrl}${cmsPath}`;
     logFile.info(`Cache miss: ${storeKey} → GET ${redactUrl(fullUrl)}`);
 

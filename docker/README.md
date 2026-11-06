@@ -27,7 +27,7 @@ want to manage the CMS connection from the setup screen.
 
 | Volume | Purpose |
 |--------|---------|
-| `/config` | `config.json` (must be writable by uid 1000) |
+| `/config` | `config.json` (ownership is fixed automatically on start) |
 | `/data` | Downloaded media cache |
 
 ## Behind nginx (TLS)

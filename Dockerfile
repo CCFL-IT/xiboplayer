@@ -36,10 +36,12 @@ WORKDIR /app
 COPY --from=build /out/proxy ./proxy
 COPY --from=build /src/packages/pwa/dist ./pwa
 COPY docker/entrypoint.js ./proxy/bin/docker-entrypoint.js
+COPY --chmod=755 docker/start.sh /usr/local/bin/xiboplayer-start
 COPY --from=build /out/version ./VERSION
 
+# Starts as root only to chown the mounted volumes, then drops to `node`
+# (see docker/start.sh).
 RUN mkdir -p /config /data && chown -R node:node /config /data
-USER node
 
 VOLUME ["/config", "/data"]
 EXPOSE 8765
@@ -47,4 +49,4 @@ EXPOSE 8765
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8765)+'/player/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["sh", "-c", "APP_VERSION=${APP_VERSION:-$(cat /app/VERSION)} exec node /app/proxy/bin/docker-entrypoint.js"]
+CMD ["xiboplayer-start"]
