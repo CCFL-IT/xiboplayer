@@ -29,3 +29,7 @@ coverage/
 # Playwright
 test-results/
 playwright-report/
+
+# Docker runtime config (written by the player)
+docker/config/*
+!docker/config/.gitkeep

@@ -1,0 +1,8 @@
+{
+  "cmsUrl": "http://cms.example.com",
+  "cmsKey": "your-cms-server-key",
+  "controls": {
+    "keyboard": { "enabled": true, "setupKey": true },
+    "mouse": { "statusBarOnHover": true }
+  }
+}

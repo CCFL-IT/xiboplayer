@@ -1,0 +1,27 @@
+# xiboplayer — PWA player + proxy
+#
+#   cp .env.example .env                                   # edit as needed
+#   cp docker/config.example.json docker/config/config.json   # optional
+#   docker compose up -d --build
+#
+# Serves plain HTTP on ${HOST_PORT:-8765}; put nginx (TLS) in front.
+# Displays open https://<your-domain>/player/
+
+services:
+  player:
+    build: .
+    image: xiboplayer:latest
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "${HOST_PORT:-8765}:${PORT:-8765}"
+    volumes:
+      # config.json lives here; the setup screen writes back to it
+      - ./docker/config:/config
+      # downloaded media cache
+      - player-data:/data
+
+volumes:
+  player-data:
