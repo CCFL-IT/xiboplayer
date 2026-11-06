@@ -271,6 +271,11 @@ export class DisplaySettings extends EventEmitter {
       const start = this.parseTimeWindow(this.settings.downloadStartWindow);
       const end = this.parseTimeWindow(this.settings.downloadEndWindow);
 
+      // Equal start/end (CMS default 00:00–00:00) means no restriction
+      if (start === end) {
+        return true;
+      }
+
       // Handle overnight window (e.g., 22:00 - 06:00)
       if (start > end) {
         // Overnight: allow if AFTER start OR BEFORE end

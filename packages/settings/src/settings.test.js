@@ -255,6 +255,22 @@ describe('DisplaySettings', () => {
         vi.useRealTimers();
       });
 
+      it('should treat equal start/end (CMS default 00:00-00:00) as always open', () => {
+        settings.applySettings({
+          downloadStartWindow: '00:00',
+          downloadEndWindow: '00:00'
+        });
+
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date(2026, 0, 15, 12, 0, 0));
+        expect(settings.isInDownloadWindow()).toBe(true);
+
+        vi.setSystemTime(new Date(2026, 0, 15, 0, 0, 0));
+        expect(settings.isInDownloadWindow()).toBe(true);
+
+        vi.useRealTimers();
+      });
+
       it('should handle invalid time window gracefully', () => {
         settings.applySettings({
           downloadStartWindow: 'invalid',
