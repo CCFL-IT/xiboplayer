@@ -1,5 +1,8 @@
 # xiboplayer SDK
 
+[!IMPORTANT]
+This is not secure and should be authenticated behind a firewall or in a separate network. Anyone can read your CMS key by knowing the URL.
+
 Modular JavaScript SDK for building [Xibo](https://xibosignage.com) digital signage players. Each package handles one concern — combine them to build a full player, or use individual packages in your own projects.
 
 All packages are published to npm under the [`@xiboplayer`](https://www.npmjs.com/org/xiboplayer) scope.
